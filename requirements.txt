@@ -1,0 +1,7 @@
+librosa
+python-dotenv
+ipywidgets
+pytest
+ffmpeg-python
+google-genai
+dvc-gs==3.0.2
