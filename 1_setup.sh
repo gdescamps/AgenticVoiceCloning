@@ -1,4 +1,5 @@
 #!/bin/bash
+sudo apt-get install ffmpeg -y
 git submodule update --init --recursive
 
 rm -rf venv
