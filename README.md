@@ -5,7 +5,8 @@ Welcome to AgenticVoiceCloning, an open-source framework for high-quality, agent
 ## Demo Video
 
 Watch the full demo and explanation:
-[![YouTube Video](https://img.youtube.com/vi/c6kNWaCAw6s/0.jpg)](https://youtu.be/c6kNWaCAw6s)
+
+[![YouTube Video](./miniature_voice_cloning.png)](https://youtu.be/c6kNWaCAw6s)
 
 ## What is Agentic Voice Cloning?
 
