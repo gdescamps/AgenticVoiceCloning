@@ -58,6 +58,29 @@ git config --global user.email "your.email@example.com"
     PROJECT_ID="your-gcp-project-id"
     ```
 
+## Environment Variables Setup
+
+Before running the project, you must fill in the `.env` file with your API credentials:
+
+1. **Hugging Face API Key**  
+   - Create an account at [Hugging Face](https://huggingface.co/join).
+   - Go to your [settings](https://huggingface.co/settings/tokens) and generate a new access token.
+   - Add this line to your `.env` file:
+     ```
+     HUGGINGFACE_API_KEY="your-huggingface-api-key"
+     ```
+
+2. **Google Cloud Service Account (Gemini API enabled)**  
+   - Create a service account in your [Google Cloud Console](https://console.cloud.google.com/).
+   - Enable the Gemini API (VertexAI) for your project.
+   - Download the service account JSON file.
+   - Add these lines to your `.env` file:
+     ```
+     GOOGLE_APPLICATION_CREDENTIALS="./gcp-service-account.json"
+     PROJECT_ID="your-gcp-project-id"
+     ```
+   - Make sure your service account has permissions to use Gemini (VertexAI).
+
 ## Setup
 
 Clone the repository and run the setup script:
