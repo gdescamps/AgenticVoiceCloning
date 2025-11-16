@@ -5,7 +5,10 @@ import shutil
 import subprocess
 
 from llm import save_cache, wavtext2text
+from printlog import PrintLog
 from utils import exec_python_script_from_venv
+
+printlog = PrintLog(output_dir="./outputs", extra_name="_voice_cloning", enable=True)
 
 
 # Function to compute the pitch adjustment required to achieve a target characters-per-minute (CPM) rate.
@@ -123,6 +126,9 @@ def agentic_voice_cloning_loop(
 
     for s in seeds:
 
+        with printlog:
+            print(f"Attempt with random seed {s}")
+
         hash_object = hashlib.md5((transcript + s + temperature).encode())
         hash = hash_object.hexdigest()
         cache_wav_path = f"./cache/{hash}.wav"
@@ -153,8 +159,15 @@ def agentic_voice_cloning_loop(
         pitch = max(0, int(pitch))
         pitch = min(10, pitch)
 
+        with printlog:
+            print(f"Estimated pitch to normalize speech: {pitch}")
+
         cache_wav_pitched_path = apply_speech_pitch(cache_wav_path, int(pitch))
         score = evaluate_speech_quality(cache_wav_pitched_path, transcript)
+
+        with printlog:
+            print(f"Evaluation score: {score}")
+
         if (score - int(pitch)) >= best_score:
             best_score = score - int(pitch)
             best_wav_path = cache_wav_pitched_path
@@ -162,11 +175,19 @@ def agentic_voice_cloning_loop(
         if best_score >= 1000:
             break
         if len(best_scores) >= 3:
+            with printlog:
+                print(f"Attempt with random seed {s}")
+
             break
+
+    with printlog:
+        print(f"Best score {best_score}, best generated file {best_wav_path} ")
+
     return best_wav_path
 
 
 if __name__ == "__main__":
+
     # Example usage: change transcript and attempts as needed
     result_wav = agentic_voice_cloning_loop(
         gpu=0,
