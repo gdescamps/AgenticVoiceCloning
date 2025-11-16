@@ -91,23 +91,6 @@ The best generated WAV file will be saved as `./my_voice_cloned.wav`.
 
 Edit the transcript in `main.py` or pass your own text to the agentic loop function.
 
-### Example agentic loop (from video script)
-
-The agentic loop:
-1. Generates voice samples using Higgs Audio V2.
-2. Normalizes speech speed with pitch adjustment.
-3. Evaluates speech quality using Gemini (multimodal LLM).
-4. Repeats until a high score is achieved.
-
-You can adjust temperature, top-K, and other parameters for best results.
-
-## Video Script Summary
-
-- Higgs Audio V2 delivers state-of-the-art open-source voice cloning, combining LLM, tokenizer, and decoder for natural, expressive speech.
-- The agentic loop automates generation, normalization, and evaluation, overcoming randomness in transformer models.
-- Multimodal LLMs (Gemini) score speech quality, enabling iterative improvement.
-- The agentic mindset can be applied to any AI domain—text, code, image, or audio.
-
 ## Contact
 
 💬 LinkedIn
