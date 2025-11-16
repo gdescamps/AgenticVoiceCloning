@@ -112,7 +112,7 @@ def text2text(prompt, model_name="gemini-2.5-flash", cache=True):
 
 
 def _hash_file(path: str) -> str:
-    """Retourne le SHA-256 du fichier (lecture en chunks)."""
+    """Returns the SHA-256 of the file (read in chunks)."""
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
@@ -127,13 +127,13 @@ def wavtext2text(
     cache: bool = True,
 ):
     """
-    Transcrit/Comprend un fichier audio WAV via un modèle Gemini multimodal.
+    Transcribes/Understands a WAV audio file via a Gemini multimodal model.
 
     Args:
-        wav_path: chemin vers le fichier .wav
-        prompt: (optionnel) instruction/consigne pour guider la transcription ou le résumé
-        model_name: modèle Gemini (doit supporter l'audio, ex: 'gemini-2.5-flash' ou 'gemini-2.0-flash')
-        cache: active le cache basé sur (model_name, hash_fichier, prompt)
+        wav_path: path to the .wav file
+        prompt: (optional) instruction/guidance to steer the transcription or summary
+        model_name: Gemini model (must support audio, e.g. 'gemini-2.5-flash' or 'gemini-2.0-flash')
+        cache: enables cache based on (model_name, file_hash, prompt)
 
     Returns:
         (response_text, price_usd)
@@ -142,9 +142,9 @@ def wavtext2text(
     global _llm_cache_lock
 
     if not os.path.exists(wav_path):
-        raise FileNotFoundError(f"Fichier introuvable: {wav_path}")
+        raise FileNotFoundError(f"File not found: {wav_path}")
 
-    # Clef de cache: modèle + hash fichier + prompt
+    # Cache key: model + file hash + prompt
     file_hash = _hash_file(wav_path)
     prompt_key = prompt or ""
     cache_key = hashlib.sha256(
@@ -156,11 +156,11 @@ def wavtext2text(
             if cache_key in _llm_cache:
                 return _llm_cache[cache_key], 0.0
 
-    # Préparation du contenu audio (inline, base64)
+    # Prepare audio content (inline, base64)
     with open(wav_path, "rb") as f:
         audio_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # Construction du message multimodal
+    # Build the multimodal message
     contents = [
         {
             "role": "user",
@@ -177,7 +177,7 @@ def wavtext2text(
     if prompt:
         contents[0]["parts"].append({"text": prompt})
 
-    # Appel API Gemini via Vertex AI (même logique de retry)
+    # Gemini API call via Vertex AI (same retry logic)
     client = genai.Client(
         vertexai=True, project=os.getenv("PROJECT_ID"), location="us-east1"
     )
@@ -192,7 +192,7 @@ def wavtext2text(
             print(f"⚠️ LLM API error: {e}, retrying in 10 seconds...")
             time.sleep(10)
 
-    # Coût (même méthode que text2text)
+    # Cost (same method as text2text)
     input_token = getattr(response.usage_metadata, "prompt_token_count", 0)
     output_token = getattr(response.usage_metadata, "candidates_token_count", 0)
     price = 0.0

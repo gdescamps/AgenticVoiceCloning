@@ -1,6 +1,7 @@
 # Computes the pitch adjustment needed to reach a target characters-per-minute rate for the given audio and text.
 import hashlib
 import os
+import shutil
 import subprocess
 
 from llm import save_cache, wavtext2text
@@ -97,11 +98,24 @@ def evaluate_speech_quality(wav_path: str, transcript: str) -> int:
     return ret
 
 
-def agentic_voice_cloning_loop(gpu: int = 0, transcript: str = "", attempts: int = 5):
-
+def agentic_voice_cloning_loop(
+    gpu: int = 0,
+    transcript: str = "",
+    attempts: int = 5,
+    wav_sample="./my_voice_sample.wav",
+    txt_sample="./my_voice_sample.txt",
+):
     pitch = "0"
     temperature = "0.2"
     seeds = [str(seed) for seed in range(123, 123 + attempts)]
+
+    # Ensure cache directory exists
+    os.makedirs("./cache", exist_ok=True)
+    # Copy voice sample files to Higgs Audio expected location
+    shutil.copy2(wav_sample, "./higgs-audio/examples/voice_prompts/my_voice_sample.wav")
+    shutil.copy2(txt_sample, "./higgs-audio/examples/voice_prompts/my_voice_sample.txt")
+
+    abs_current_dir = os.path.dirname(os.path.abspath(__file__))
 
     best_score = -1
     best_scores = []
@@ -115,7 +129,7 @@ def agentic_voice_cloning_loop(gpu: int = 0, transcript: str = "", attempts: int
 
         if not os.path.exists(cache_wav_path):
             exec_python_script_from_venv(
-                "/home/greg/data/code/Videos",
+                abs_current_dir,
                 "./higgs-audio",
                 "venv",
                 "./examples/generation.py",
@@ -124,7 +138,7 @@ def agentic_voice_cloning_loop(gpu: int = 0, transcript: str = "", attempts: int
                 "--transcript",
                 f"{transcript}",
                 "--ref_audio",
-                "greg",
+                "my_voice_sample",
                 "--temperature",
                 temperature,
                 "--device_id",
@@ -150,3 +164,16 @@ def agentic_voice_cloning_loop(gpu: int = 0, transcript: str = "", attempts: int
         if len(best_scores) >= 3:
             break
     return best_wav_path
+
+
+if __name__ == "__main__":
+    # Example usage: change transcript and attempts as needed
+    result_wav = agentic_voice_cloning_loop(
+        gpu=0,
+        transcript="This is a sample transcript for voice cloning.",
+        attempts=5,
+        wav_sample="./my_voice_sample.wav",
+        txt_sample="./my_voice_sample.txt",
+    )
+    shutil.copy(result_wav, "./my_voice_cloned.wav")
+    print("WAV path:", result_wav)

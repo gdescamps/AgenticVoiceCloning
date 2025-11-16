@@ -1,0 +1,5 @@
+outs:
+- md5: 0c8df98b72bd4f14256bec1ec1a7893b
+  size: 4365208
+  hash: md5
+  path: my_voice_sample.wav

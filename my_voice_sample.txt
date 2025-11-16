@@ -1,0 +1,1 @@
+Welcome to this video, we are going to test the state of art in RAG. in English Retrieval Augmented Generation, LightRAG is an improvement of Microsoft’s GraphRAG proposing to improve the basic RAG with links between pieces of text in the form of a knowledge graph. I used the term transformer to refer to ChatGPT, an LLM for Large Language Model or its equivalent.
