@@ -8,7 +8,7 @@ from threading import Lock
 from dotenv import load_dotenv
 from google import genai
 
-# Define the path to the cache file
+# Defines the path to the cache file
 CACHE_FILE = "./llm_cache.pkl"
 
 load_dotenv()
@@ -16,7 +16,7 @@ load_dotenv()
 _llm_cache_lock = Lock()
 _llm_cache = {}
 
-# Load the existing cache or initialize a new dictionary
+# Loads the existing cache or initializes a new dictionary
 if os.path.exists(CACHE_FILE):
     with open(CACHE_FILE, "rb") as f:
         _llm_cache = pickle.load(f)
@@ -45,7 +45,9 @@ prices = {
 }
 
 
-def text2text(prompt, model_name="gemini-2.5-flash", cache=True):
+def text2text(
+    prompt: str, model_name: str = "gemini-2.5-flash", cache: bool = True
+) -> tuple[str, float]:
     """
     Calls a language model (LLM) API to generate a response based on the given prompt.
 
@@ -112,7 +114,10 @@ def text2text(prompt, model_name="gemini-2.5-flash", cache=True):
 
 
 def _hash_file(path: str) -> str:
-    """Returns the SHA-256 of the file (read in chunks)."""
+    """Returns the SHA-256 of the file (read in chunks).
+    path: str - path to the file
+    Returns: str - SHA-256 hash
+    """
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
@@ -125,7 +130,7 @@ def wavtext2text(
     prompt: str | None = None,
     model_name: str = "gemini-2.5-flash",
     cache: bool = True,
-):
+) -> tuple[str, float]:
     """
     Transcribes/Understands a WAV audio file via a Gemini multimodal model.
 
@@ -211,6 +216,7 @@ def wavtext2text(
     return response_text, price
 
 
+# Saves the cache to disk.
 def save_cache():
     global _llm_cache
     global _llm_cache_lock

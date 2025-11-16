@@ -1,4 +1,5 @@
-# Computes the pitch adjustment needed to reach a target characters-per-minute rate for the given audio and text.
+# This code provides a loop for agentic voice cloning, including pitch normalization and speech quality evaluation.
+
 import hashlib
 import os
 import shutil
@@ -11,10 +12,20 @@ from utils import exec_python_script_from_venv
 printlog = PrintLog(output_dir="./outputs", extra_name="_voice_cloning", enable=True)
 
 
-# Function to compute the pitch adjustment required to achieve a target characters-per-minute (CPM) rate.
 def compute_speech_pitch(wav_path: str, transcript: str, target_cpm: int = 900) -> int:
+    """
+    Arguments:
+        wav_path (str): Path to the input WAV audio file.
+        transcript (str): The transcript text corresponding to the audio.
+        target_cpm (int): Target characters per minute rate (default: 900).
+    Returns:
+        int: The pitch adjustment value.
+    """
+
     # Returns the duration of the audio file in seconds using ffprobe.
     def get_audio_duration(path):
+        # path: str - path to the audio file
+        # Returns: float - duration in seconds
         result = subprocess.run(
             [
                 "ffprobe",
@@ -31,11 +42,11 @@ def compute_speech_pitch(wav_path: str, transcript: str, target_cpm: int = 900) 
         )
         return float(result.stdout.strip())
 
-    duration = get_audio_duration(wav_path)
+    duration = get_audio_duration(wav_path)  # Get audio duration
 
-    n_chars = len(transcript)
+    n_chars = len(transcript)  # Count number of characters in transcript
     if n_chars == 0:
-        return 0
+        return 0  # No transcript, no pitch adjustment
 
     # Calculate characters per minute based on audio duration.
     chars_per_min = n_chars / (duration / 60)
@@ -50,10 +61,17 @@ def compute_speech_pitch(wav_path: str, transcript: str, target_cpm: int = 900) 
     return pitch
 
 
-# Applies the computed pitch adjustment to the audio file using ffmpeg.
 def apply_speech_pitch(wav_path: str, pitch: int) -> str:
+    """
+    Arguments:
+        wav_path (str): Path to the input WAV audio file.
+        pitch (int): The pitch adjustment value.
+    Returns:
+        str: Path to the pitch-adjusted WAV file.
+    """
+
     if pitch == 0:
-        return wav_path
+        return wav_path  # No adjustment needed
 
     # Calculate the tempo adjustment factor.
     factor = float(100 + pitch) / 100.0
@@ -72,8 +90,14 @@ def apply_speech_pitch(wav_path: str, pitch: int) -> str:
     return temp_path
 
 
-# Evaluates the quality of the speech audio by prompting an LLM and returns a score from 1 to 1000.
 def evaluate_speech_quality(wav_path: str, transcript: str) -> int:
+    """
+    Arguments:
+        wav_path (str): Path to the WAV audio file.
+        transcript (str): The expected transcript text.
+    Returns:
+        int: The speech quality score (1 to 1000).
+    """
 
     # Prepare the prompt for the LLM to rate the speech quality.
     prompt = f"""
@@ -90,9 +114,9 @@ def evaluate_speech_quality(wav_path: str, transcript: str) -> int:
     Expected transcription:
     {transcript}
     """
-    response, _ = wavtext2text(wav_path, prompt)
+    response, _ = wavtext2text(wav_path, prompt)  # Get LLM evaluation
     save_cache()
-    ret = 500
+    ret = 500  # Default score
     try:
         # Try to parse the integer score from the LLM response.
         ret = int(response.strip())
@@ -108,6 +132,17 @@ def agentic_voice_cloning_loop(
     wav_sample="./my_voice_sample.wav",
     txt_sample="./my_voice_sample.txt",
 ):
+    """
+    Arguments:
+        gpu (int): GPU device ID to use for generation.
+        transcript (str): The transcript text for voice cloning.
+        attempts (int): Number of generation attempts.
+        wav_sample (str): Path to the reference voice sample WAV file.
+        txt_sample (str): Path to the reference transcript text file.
+    Returns:
+        str: Path to the best generated WAV file.
+    """
+
     pitch = "0"
     temperature = "0.2"
     seeds = [str(seed) for seed in range(123, 123 + attempts)]
@@ -125,7 +160,7 @@ def agentic_voice_cloning_loop(
     best_wav_path = None
 
     for s in seeds:
-
+        # Iterate over random seeds for generation attempts
         with printlog:
             print(f"Attempt with random seed {s}")
 
@@ -134,6 +169,7 @@ def agentic_voice_cloning_loop(
         cache_wav_path = f"./cache/{hash}.wav"
 
         if not os.path.exists(cache_wav_path):
+            # Generate new audio if not cached
             exec_python_script_from_venv(
                 abs_current_dir,
                 "./higgs-audio",
@@ -155,19 +191,24 @@ def agentic_voice_cloning_loop(
                 f".{cache_wav_path}",
             )
 
-        pitch = compute_speech_pitch(cache_wav_path, transcript)
+        pitch = compute_speech_pitch(cache_wav_path, transcript)  # Estimate pitch
         pitch = max(0, int(pitch))
         pitch = min(10, pitch)
 
         with printlog:
             print(f"Estimated pitch to normalize speech: {pitch}")
 
-        cache_wav_pitched_path = apply_speech_pitch(cache_wav_path, int(pitch))
-        score = evaluate_speech_quality(cache_wav_pitched_path, transcript)
+        cache_wav_pitched_path = apply_speech_pitch(
+            cache_wav_path, int(pitch)
+        )  # Apply pitch
+        score = evaluate_speech_quality(
+            cache_wav_pitched_path, transcript
+        )  # Evaluate quality
 
         with printlog:
             print(f"Evaluation score: {score}")
 
+        # Track best score and file
         if (score - int(pitch)) >= best_score:
             best_score = score - int(pitch)
             best_wav_path = cache_wav_pitched_path
@@ -191,7 +232,7 @@ if __name__ == "__main__":
     # Example usage: change transcript and attempts as needed
     result_wav = agentic_voice_cloning_loop(
         gpu=0,
-        transcript="This is a sample transcript for voice cloning.",
+        transcript="Hi, this is Gregory, in this video, I’ll show you how to clone your voice with open source AI and a quality that outperforms commercial solutions.",
         attempts=5,
         wav_sample="./my_voice_sample.wav",
         txt_sample="./my_voice_sample.txt",
