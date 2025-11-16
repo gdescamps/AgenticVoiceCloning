@@ -9,6 +9,7 @@ pip install -r ./requirements.txt
 
 pushd ./higgs-audio
 pip install -r ./requirements.txt
+pip install -e .
 popd
 
 dvc pull
