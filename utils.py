@@ -1,33 +1,16 @@
-import hashlib
 import os
 import subprocess
 
 
-def file_hash(path, algo="sha256", chunk_size=8192):
-    """Compute a hash (default SHA-256) of a file's content."""
-    h = hashlib.new(algo)
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(chunk_size), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def get_slide_hash(slide_data):
-    """Unique hash based on the text and associated video."""
-    h = hashlib.sha256()
-    h.update(slide_data["transcript"].encode("utf-8"))
-    h.update(slide_data["best_hash"].encode("utf-8"))
-    if "mp4_file" in slide_data and slide_data["mp4_file"]:
-        video_path = slide_data["mp4_file"]
-        try:
-            video_hash = file_hash(video_path)
-            h.update(video_hash.encode("utf-8"))
-        except FileNotFoundError:
-            print(f"⚠️ Video file not found: {video_path}")
-    return h.hexdigest()[:12]
-
-
-def exec_python_script_from_venv(abs_repo_path, wd, venv, script_path, *args):
+# Executes a Python script in a specific virtual environment.
+# abs_repo_path: str - absolute path to the repository
+# wd: str - working directory for execution
+# venv: str - name or path of the virtual environment folder
+# script_path: str - path to the Python script to execute
+# *args: str - additional arguments to pass to the script
+def exec_python_script_from_venv(
+    abs_repo_path: str, wd: str, venv: str, script_path: str, *args: str
+):
     cwd = os.getcwd()
     interpreter = "%s/%s/bin/python" % (abs_repo_path, venv)
     command = [interpreter, script_path] + list(args)
